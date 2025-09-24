@@ -1,0 +1,33 @@
+# Maven
+# Build your Java project and run tests with Apache Maven.
+# Add steps that analyze code, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/java
+
+trigger:
+- develop
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- task: NodeTool@0
+  inputs:
+    versionSpec: '22.x'
+  displayName: 'Install Node.js'
+
+- script: yarn install
+  workingDirectory: 'frontend'
+  displayName: 'Install frontend dependencies'
+
+- script: yarn build
+  workingDirectory: 'frontend'
+  displayName: 'Build frontend'
+
+- task: Docker@2
+  inputs:
+    containerRegistry: 'devops-connection-string-to-registry-develop'
+    repository: 'OscarIvanEstrada/mic-tts-api'
+    command: 'buildAndPush'
+    Dockerfile: 'Dockerfile'
+    buildContext: '.'
+    tags: '$(build.buildNumber)-develop'
